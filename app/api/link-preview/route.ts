@@ -50,6 +50,9 @@ export async function GET(req: NextRequest) {
       html.match(/<meta[^>]+property="product:price:amount"[^>]+content="([\d.]+)"/i)?.[1] ||
       html.match(/itemprop="price"[^>]+content="([\d.]+)"/i)?.[1] ||
       html.match(/<meta[^>]+content="([\d.]+)"[^>]+itemprop="price"/i)?.[1] ||
+      // Shopify stores (ecmtuner.com etc) — price in JSON-LD or meta
+      html.match(/"price":\s*"([\d.]+)"/)?.[1] ||
+      html.match(/<meta[^>]+name="twitter:data1"[^>]+content="\$([\d,]+\.?\d*)"/i)?.[1] ||
       null
 
     const price = priceMatch ? parseFloat(priceMatch.replace(/,/g, '')) : null
