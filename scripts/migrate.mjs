@@ -99,6 +99,11 @@ async function migrate() {
     ALTER TABLE "User" ADD COLUMN IF NOT EXISTS twitter TEXT;
   `);
 
+  // Add youtubeUrl to Build
+  await client.query(`
+    ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "youtubeUrl" TEXT;
+  `);
+
   console.log('✅ Migration complete');
   await client.end();
 }

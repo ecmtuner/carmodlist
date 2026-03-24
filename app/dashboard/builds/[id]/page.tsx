@@ -45,6 +45,7 @@ interface Build {
   isPublic: boolean
   slug: string
   coverImage?: string
+  youtubeUrl?: string
   mods: Mod[]
   photos: BuildPhoto[]
   _count: { likes: number }
@@ -626,11 +627,47 @@ export default function BuildDetailPage() {
 
       {/* Quick Info */}
       {build.description && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
           <h2 className="font-bold mb-3">About this build</h2>
           <p className="text-gray-400 text-sm leading-relaxed">{build.description}</p>
         </div>
       )}
+
+      {/* YouTube Video */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <h2 className="font-bold mb-3">Build Video <span className="text-gray-500 text-sm font-normal">(optional)</span></h2>
+        <div className="flex gap-3">
+          <input
+            type="text"
+            className={inputClass}
+            placeholder="Paste YouTube link — exhaust sound, dyno pull, track lap..."
+            defaultValue={build.youtubeUrl || ''}
+            onBlur={async (e) => {
+              const val = e.target.value.trim()
+              if (val === (build.youtubeUrl || '')) return
+              await fetch(`/api/builds/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...build, youtubeUrl: val || null })
+              })
+              fetchBuild()
+            }}
+          />
+        </div>
+        {build.youtubeUrl && (() => {
+          const embedId = build.youtubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/)?.[1]
+          return embedId ? (
+            <div className="mt-4 aspect-video rounded-xl overflow-hidden">
+              <iframe
+                src={`https://www.youtube.com/embed/${embedId}`}
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          ) : null
+        })()}
+      </div>
     </div>
   )
 }

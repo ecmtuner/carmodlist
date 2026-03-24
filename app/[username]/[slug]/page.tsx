@@ -42,6 +42,7 @@ interface Build {
   totalCost: number
   slug: string
   coverImage?: string
+  youtubeUrl?: string
   mods: Mod[]
   photos: BuildPhoto[]
   user: { username: string; name?: string; avatar?: string }
@@ -537,6 +538,24 @@ export default function PublicBuildPage() {
             View Profile →
           </Link>
         </div>
+
+        {/* YouTube Video */}
+        {build.youtubeUrl && (() => {
+          const embedId = build.youtubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/)?.[1]
+          return embedId ? (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
+              <h2 className="font-bold text-lg mb-4">🎬 Build Video</h2>
+              <div className="aspect-video rounded-xl overflow-hidden">
+                <iframe
+                  src={`https://www.youtube.com/embed/${embedId}`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          ) : null
+        })()}
 
         {/* Comments Section */}
         <CommentsSection buildId={build.id} />

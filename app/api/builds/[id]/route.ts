@@ -47,6 +47,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       description: data.description,
       isPublic: data.isPublic,
       ...(data.coverImage !== undefined ? { coverImage: data.coverImage } : {}),
+      ...(data.youtubeUrl !== undefined ? { youtubeUrl: data.youtubeUrl || null } : {}),
     }
   })
 

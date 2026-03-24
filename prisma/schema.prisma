@@ -47,6 +47,7 @@ model Build {
   fuel        String?
   description String?
   coverImage  String?
+  youtubeUrl  String?
   isPublic    Boolean  @default(true)
   totalCost   Float    @default(0)
   createdAt   DateTime @default(now())
