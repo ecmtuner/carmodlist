@@ -69,11 +69,21 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    // Extract brand/vendor name
+    const brandMatch =
+      html.match(/<meta[^>]+property="product:brand"[^>]+content="([^"]+)"/i)?.[1] ||
+      html.match(/<meta[^>]+content="([^"]+)"[^>]+property="product:brand"/i)?.[1] ||
+      html.match(/itemprop="brand"[^>]*>([^<]+)</i)?.[1] ||
+      html.match(/"brand"\s*:\s*\{\s*"@type"\s*:\s*"Brand"\s*,\s*"name"\s*:\s*"([^"]+)"/i)?.[1] ||
+      html.match(/"vendor"\s*:\s*"([^"]+)"/i)?.[1] ||
+      null
+
     return NextResponse.json({
       image: ogImage ? ogImage.trim() : null,
       title: ogTitle ? ogTitle.trim() : null,
       description: ogDescription ? ogDescription.trim() : null,
       price: price && price >= 1 && price <= 25000 ? Math.round(price) : null,
+      brand: brandMatch ? brandMatch.trim() : null,
     })
   } catch {
     return NextResponse.json({ image: null, title: null, description: null })

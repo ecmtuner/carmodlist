@@ -394,6 +394,58 @@ export default function BuildDetailPage() {
               </div>
             </div>
 
+            {/* Vendor URL — first so it auto-fills everything below */}
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5">Product Link <span className="text-gray-600">(paste first — auto-fills name, brand &amp; price)</span></label>
+              <input
+                type="text"
+                value={modForm.vendorUrl}
+                onChange={e => {
+                  let val = e.target.value
+                  if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                    val = 'https://' + val
+                  }
+                  setModForm({ ...modForm, vendorUrl: val })
+                  if (!val) setLinkPreview(null)
+                }}
+                onBlur={e => {
+                  let val = e.target.value.trim()
+                  if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                    val = 'https://' + val
+                    setModForm({ ...modForm, vendorUrl: val })
+                  }
+                  if (val && val.startsWith('http')) {
+                    setPreviewLoading(true)
+                    fetch(`/api/link-preview?url=${encodeURIComponent(val)}`)
+                      .then(r => r.json())
+                      .then(data => {
+                        setLinkPreview(data)
+                        setPreviewLoading(false)
+                        setModForm(f => ({
+                          ...f,
+                          name: f.name || data.title || f.name,
+                          brand: f.brand || data.brand || f.brand,
+                          price: (!f.price || f.price === '') && data.price ? data.price.toString() : f.price,
+                        }))
+                      })
+                      .catch(() => setPreviewLoading(false))
+                  }
+                }}
+                className={inputClass}
+                placeholder="amazon.com/dp/... or ecmtuner.com/products/..."
+              />
+              {previewLoading && <p className="text-xs text-gray-500 mt-1">⏳ Fetching product info...</p>}
+              {linkPreview?.image && (
+                <div className="flex items-center gap-3 mt-2 p-3 bg-gray-900 rounded-xl border border-gray-700">
+                  <img src={linkPreview.image} alt="" className="w-14 h-14 object-cover rounded-lg flex-shrink-0" />
+                  <div className="text-xs text-gray-400">
+                    {linkPreview.title && <div className="text-white font-medium mb-0.5">{linkPreview.title.slice(0, 60)}</div>}
+                    <div className="text-green-400">✓ Info auto-filled below</div>
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-gray-400 mb-1.5">Brand</label>
@@ -433,73 +485,14 @@ export default function BuildDetailPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-gray-400 mb-1.5">Vendor URL</label>
-                <input
-                  type="text"
-                  value={modForm.vendorUrl}
-                  onChange={e => {
-                    let val = e.target.value
-                    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
-                      val = 'https://' + val
-                    }
-                    setModForm({ ...modForm, vendorUrl: val })
-                    if (!val) setLinkPreview(null)
-                  }}
-                  onBlur={e => {
-                    let val = e.target.value.trim()
-                    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
-                      val = 'https://' + val
-                      setModForm({ ...modForm, vendorUrl: val })
-                    }
-                    if (val && val.startsWith('http')) {
-                      setPreviewLoading(true)
-                      fetch(`/api/link-preview?url=${encodeURIComponent(val)}`)
-                        .then(r => r.json())
-                        .then(data => {
-                          setLinkPreview(data)
-                          setPreviewLoading(false)
-                          // Auto-fill name if empty
-                          if (data.title && modForm.name === '') {
-                            setModForm(f => ({ ...f, name: data.title }))
-                          }
-                          // Auto-fill price if found and price is empty
-                          if (data.price && (!modForm.price || modForm.price === '')) {
-                            setModForm(f => ({ ...f, price: data.price.toString() }))
-                          }
-                        })
-                        .catch(() => setPreviewLoading(false))
-                    }
-                  }}
-                  className={inputClass}
-                  placeholder="amazon.com/dp/..."
-                />
-                {previewLoading && <p className="text-xs text-gray-500 mt-1">Fetching preview...</p>}
-                {linkPreview?.image && (
-                  <div className="flex items-center gap-2 mt-2 p-2 bg-gray-800 rounded-lg">
-                    <img src={linkPreview.image} alt="" className="w-12 h-12 object-cover rounded" />
-                    {linkPreview.title && modForm.name === '' && (
-                      <button
-                        type="button"
-                        onClick={() => setModForm(f => ({ ...f, name: linkPreview.title || f.name }))}
-                        className="text-xs text-blue-400 hover:text-blue-300 text-left"
-                      >
-                        Use: &quot;{linkPreview.title?.slice(0, 50)}&quot;
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1.5">Install Date</label>
-                <input
-                  type="date"
-                  value={modForm.installDate}
-                  onChange={e => setModForm({ ...modForm, installDate: e.target.value })}
-                  className={inputClass}
-                />
-              </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5">Install Date</label>
+              <input
+                type="date"
+                value={modForm.installDate}
+                onChange={e => setModForm({ ...modForm, installDate: e.target.value })}
+                className={`${inputClass} w-1/2`}
+              />
             </div>
 
             {modForm.category === 'Tune' && (
