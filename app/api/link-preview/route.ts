@@ -45,10 +45,21 @@ export async function GET(req: NextRequest) {
       html.match(/<meta[^>]+content="([^"]+)"[^>]+name="description"/i)?.[1] ||
       null
 
+    // Try to extract price from common e-commerce patterns
+    const priceMatch =
+      html.match(/"price"\s*:\s*"?([\d,]+\.?\d*)"?/i)?.[1] ||
+      html.match(/itemprop="price"[^>]+content="([\d.]+)"/i)?.[1] ||
+      html.match(/class="[^"]*price[^"]*"[^>]*>\s*\$?([\d,]+\.?\d*)/i)?.[1] ||
+      html.match(/<meta[^>]+property="product:price:amount"[^>]+content="([\d.]+)"/i)?.[1] ||
+      null
+
+    const price = priceMatch ? parseFloat(priceMatch.replace(/,/g, '')) : null
+
     return NextResponse.json({
       image: ogImage ? ogImage.trim() : null,
       title: ogTitle ? ogTitle.trim() : null,
       description: ogDescription ? ogDescription.trim() : null,
+      price: price && price > 0 && price < 100000 ? price : null,
     })
   } catch {
     return NextResponse.json({ image: null, title: null, description: null })

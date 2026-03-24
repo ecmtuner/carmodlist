@@ -456,7 +456,18 @@ export default function BuildDetailPage() {
                       setPreviewLoading(true)
                       fetch(`/api/link-preview?url=${encodeURIComponent(val)}`)
                         .then(r => r.json())
-                        .then(data => { setLinkPreview(data); setPreviewLoading(false) })
+                        .then(data => {
+                          setLinkPreview(data)
+                          setPreviewLoading(false)
+                          // Auto-fill name if empty
+                          if (data.title && modForm.name === '') {
+                            setModForm(f => ({ ...f, name: data.title }))
+                          }
+                          // Auto-fill price if found and price is empty
+                          if (data.price && (!modForm.price || modForm.price === '')) {
+                            setModForm(f => ({ ...f, price: data.price.toString() }))
+                          }
+                        })
                         .catch(() => setPreviewLoading(false))
                     }
                   }}
