@@ -69,7 +69,7 @@ function timeAgo(dateStr: string): string {
 }
 
 // ---- CommentsSection (client component) ----
-function CommentsSection({ buildId, currentUserId }: { buildId: string; currentUserId?: string }) {
+function CommentsSection({ buildId }: { buildId: string }) {
   const { data: session } = useSession()
   const [comments, setComments] = useState<Comment[]>([])
   const [text, setText] = useState('')
@@ -183,8 +183,7 @@ function CommentsSection({ buildId, currentUserId }: { buildId: string; currentU
                 <p className="text-sm text-gray-300 mt-0.5 break-words">{comment.text}</p>
               </div>
               {/* Delete own comment */}
-              {currentUserId && (session?.user as any)?.id === currentUserId && 
-               (session?.user as any)?.username === comment.user.username && (
+              {session?.user && (session?.user as any)?.username === comment.user.username && (
                 <button
                   onClick={() => handleDelete(comment.id)}
                   className="text-gray-600 hover:text-red-400 text-xs transition-colors flex-shrink-0 self-start mt-1"
@@ -540,10 +539,7 @@ export default function PublicBuildPage() {
         </div>
 
         {/* Comments Section */}
-        <CommentsSection
-          buildId={build.id}
-          currentUserId={(session?.user as any)?.id}
-        />
+        <CommentsSection buildId={build.id} />
       </div>
 
       {/* Footer */}

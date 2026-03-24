@@ -46,6 +46,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       fuel: data.fuel,
       description: data.description,
       isPublic: data.isPublic,
+      ...(data.coverImage !== undefined ? { coverImage: data.coverImage } : {}),
     }
   })
 

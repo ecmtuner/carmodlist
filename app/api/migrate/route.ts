@@ -67,6 +67,21 @@ export async function GET() {
         "followingId" TEXT NOT NULL REFERENCES "User"(id),
         UNIQUE("followerId", "followingId")
       );
+      CREATE TABLE IF NOT EXISTS "BuildPhoto" (
+        id TEXT PRIMARY KEY,
+        "buildId" TEXT NOT NULL REFERENCES "Build"(id) ON DELETE CASCADE,
+        url TEXT NOT NULL,
+        "publicId" TEXT NOT NULL,
+        "order" INTEGER NOT NULL DEFAULT 0,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+      CREATE TABLE IF NOT EXISTS "Comment" (
+        id TEXT PRIMARY KEY,
+        "buildId" TEXT NOT NULL REFERENCES "Build"(id) ON DELETE CASCADE,
+        "userId" TEXT NOT NULL REFERENCES "User"(id),
+        text TEXT NOT NULL,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
     `)
     await client.end()
     return NextResponse.json({ ok: true, message: 'Tables created successfully' })
