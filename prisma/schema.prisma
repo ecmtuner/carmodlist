@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String?
+  googleId  String?  @unique
+  name      String?
+  username  String   @unique
+  avatar    String?
+  bio       String?
+  plan      String   @default("free")
+  createdAt DateTime @default(now())
+
+  builds    Build[]
+  likes     Like[]
+  following Follow[] @relation("follower")
+  followers Follow[] @relation("following")
+}
+
+model Build {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  slug        String   @unique
+  title       String
+  year        Int
+  make        String
+  model       String
+  trim        String?
+  hpStock     Int?
+  hpTuned     Int?
+  torqueStock Int?
+  torqueTuned Int?
+  fuel        String?
+  description String?
+  coverImage  String?
+  isPublic    Boolean  @default(true)
+  totalCost   Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  mods  Mod[]
+  likes Like[]
+}
+
+model Mod {
+  id          String   @id @default(cuid())
+  buildId     String
+  build       Build    @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  category    String
+  name        String
+  brand       String?
+  vendorUrl   String?
+  price       Float?
+  installDate String?
+  notes       String?
+  isTune      Boolean  @default(false)
+  tunerName   String?
+  tunerUrl    String?
+  createdAt   DateTime @default(now())
+}
+
+model Like {
+  id      String @id @default(cuid())
+  userId  String
+  buildId String
+  user    User   @relation(fields: [userId], references: [id])
+  build   Build  @relation(fields: [buildId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, buildId])
+}
+
+model Follow {
+  id          String @id @default(cuid())
+  followerId  String
+  followingId String
+  follower    User   @relation("follower", fields: [followerId], references: [id])
+  following   User   @relation("following", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+}
