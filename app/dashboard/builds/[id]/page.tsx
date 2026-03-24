@@ -71,6 +71,8 @@ export default function BuildDetailPage() {
   const [showModForm, setShowModForm] = useState(false)
   const [modForm, setModForm] = useState(emptyMod)
   const [savingMod, setSavingMod] = useState(false)
+  const [brandSuggestions, setBrandSuggestions] = useState<string[]>([])
+  const brandDatalistId = 'brand-suggestions'
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [settingCover, setSettingCover] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -357,11 +359,26 @@ export default function BuildDetailPage() {
                 <label className="block text-xs text-gray-400 mb-1.5">Brand</label>
                 <input
                   type="text"
+                  list={brandDatalistId}
                   value={modForm.brand}
-                  onChange={e => setModForm({ ...modForm, brand: e.target.value })}
+                  onChange={e => {
+                    setModForm({ ...modForm, brand: e.target.value })
+                    if (e.target.value.length >= 1) {
+                      fetch(`/api/brands?category=${encodeURIComponent(modForm.category)}&q=${encodeURIComponent(e.target.value)}`)
+                        .then(r => r.json()).then(setBrandSuggestions)
+                    }
+                  }}
+                  onFocus={() => {
+                    fetch(`/api/brands?category=${encodeURIComponent(modForm.category)}`)
+                      .then(r => r.json()).then(setBrandSuggestions)
+                  }}
                   className={inputClass}
                   placeholder="e.g. Wagner"
+                  autoComplete="off"
                 />
+                <datalist id={brandDatalistId}>
+                  {brandSuggestions.map(b => <option key={b} value={b} />)}
+                </datalist>
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1.5">Price ($)</label>
