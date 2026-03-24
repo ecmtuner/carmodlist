@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ id: user.id, email: user.email, username: user.username })
   } catch (err: any) {
-    console.error(err)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    console.error('SIGNUP ERROR:', err?.message, err?.code)
+    return NextResponse.json({ error: err?.message || 'Server error', code: err?.code }, { status: 500 })
   }
 }
