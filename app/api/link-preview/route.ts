@@ -45,17 +45,29 @@ export async function GET(req: NextRequest) {
       html.match(/<meta[^>]+content="([^"]+)"[^>]+name="description"/i)?.[1] ||
       null
 
-    // Try to extract price — prioritize structured data, cap at $25,000 (car parts range)
+    // Try to extract price — prioritize itemprop/og tags (already in dollars)
+    // Avoid Shopify's meta.variants[].price which is in cents
     const priceMatch =
-      html.match(/<meta[^>]+property="product:price:amount"[^>]+content="([\d.]+)"/i)?.[1] ||
-      html.match(/itemprop="price"[^>]+content="([\d.]+)"/i)?.[1] ||
+      html.match(/<meta[^>]+itemprop="price"[^>]+content="([\d.]+)"/i)?.[1] ||
       html.match(/<meta[^>]+content="([\d.]+)"[^>]+itemprop="price"/i)?.[1] ||
-      // Shopify stores (ecmtuner.com etc) — price in JSON-LD or meta
-      html.match(/"price":\s*"([\d.]+)"/)?.[1] ||
-      html.match(/<meta[^>]+name="twitter:data1"[^>]+content="\$([\d,]+\.?\d*)"/i)?.[1] ||
+      html.match(/<meta[^>]+property="product:price:amount"[^>]+content="([\d.]+)"/i)?.[1] ||
+      html.match(/<meta[^>]+property="og:price:amount"[^>]+content="([\d.]+)"/i)?.[1] ||
+      // Shopify initData "amount": — this is in real dollars (not cents)
+      html.match(/"amount":([\d.]+),"currencyCode":"USD"/)?.[1] ||
       null
 
-    const price = priceMatch ? parseFloat(priceMatch.replace(/,/g, '')) : null
+    let price = priceMatch ? parseFloat(priceMatch) : null
+
+    // If URL has a variant param, find that specific variant's price from Shopify initData
+    const variantId = url.match(/[?&]variant=(\d+)/)?.[1]
+    if (variantId) {
+      const variantPriceMatch = html.match(new RegExp(`"id":"${variantId}"[^}]+"price":\\{"amount":([\\.\\d]+)`))
+        || html.match(new RegExp(`"id":${variantId}[^}]+"price":([\\.\\d]+),"name"`))
+      if (variantPriceMatch) {
+        const vp = parseFloat(variantPriceMatch[1])
+        if (vp > 0 && vp <= 25000) price = vp
+      }
+    }
 
     return NextResponse.json({
       image: ogImage ? ogImage.trim() : null,
