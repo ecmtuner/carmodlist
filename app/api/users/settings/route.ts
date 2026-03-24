@@ -7,7 +7,7 @@ export async function PUT(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { name, username, bio, avatar } = await req.json()
+  const { name, username, bio, avatar, instagram, youtube, tiktok, twitter } = await req.json()
   const userId = (session.user as any).id
   if (!userId) return NextResponse.json({ error: 'Session missing user ID — please log out and back in' }, { status: 401 })
 
@@ -24,7 +24,7 @@ export async function PUT(req: NextRequest) {
   try {
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { name, username, bio, avatar }
+      data: { name, username, bio, avatar, instagram, youtube, tiktok, twitter }
     })
     return NextResponse.json(user)
   } catch (err: any) {

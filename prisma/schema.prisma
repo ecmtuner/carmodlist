@@ -16,6 +16,10 @@ model User {
   username  String   @unique
   avatar    String?
   bio       String?
+  instagram String?
+  youtube   String?
+  tiktok    String?
+  twitter   String?
   plan      String   @default("free")
   createdAt DateTime @default(now())
 

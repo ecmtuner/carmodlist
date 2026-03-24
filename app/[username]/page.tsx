@@ -11,6 +11,10 @@ interface Profile {
   name?: string
   bio?: string
   avatar?: string
+  instagram?: string
+  youtube?: string
+  tiktok?: string
+  twitter?: string
   _count: { builds: number; followers: number; following: number }
   builds: {
     id: string
@@ -100,6 +104,40 @@ export default function ProfilePage() {
             <h1 className="text-2xl font-black">@{profile.username}</h1>
             {profile.name && <p className="text-gray-400 mt-1">{profile.name}</p>}
             {profile.bio && <p className="text-gray-300 mt-3 max-w-lg">{profile.bio}</p>}
+
+            {(profile.instagram || profile.youtube || profile.tiktok || profile.twitter) && (
+              <div className="flex items-center gap-3 mt-3">
+                {profile.instagram && (
+                  <a href={profile.instagram} target="_blank" rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-white text-lg transition-opacity hover:opacity-80"
+                    style={{ background: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' }}
+                    title="Instagram">
+                    📸
+                  </a>
+                )}
+                {profile.youtube && (
+                  <a href={profile.youtube} target="_blank" rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white text-lg transition-opacity hover:opacity-80"
+                    title="YouTube">
+                    ▶️
+                  </a>
+                )}
+                {profile.tiktok && (
+                  <a href={profile.tiktok} target="_blank" rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full bg-black border border-gray-700 flex items-center justify-center text-white text-lg transition-opacity hover:opacity-80"
+                    title="TikTok">
+                    🎵
+                  </a>
+                )}
+                {profile.twitter && (
+                  <a href={profile.twitter} target="_blank" rel="noopener noreferrer"
+                    className="w-9 h-9 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg transition-opacity hover:opacity-80"
+                    title="Twitter / X">
+                    🐦
+                  </a>
+                )}
+              </div>
+            )}
 
             <div className="flex gap-6 mt-4 text-sm">
               <div>

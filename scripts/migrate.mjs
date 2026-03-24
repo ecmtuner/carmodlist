@@ -91,6 +91,14 @@ async function migrate() {
     );
   `);
 
+  // Add social media columns if not present
+  await client.query(`
+    ALTER TABLE "User" ADD COLUMN IF NOT EXISTS instagram TEXT;
+    ALTER TABLE "User" ADD COLUMN IF NOT EXISTS youtube TEXT;
+    ALTER TABLE "User" ADD COLUMN IF NOT EXISTS tiktok TEXT;
+    ALTER TABLE "User" ADD COLUMN IF NOT EXISTS twitter TEXT;
+  `);
+
   console.log('✅ Migration complete');
   await client.end();
 }

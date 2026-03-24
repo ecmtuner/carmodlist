@@ -10,6 +10,10 @@ export async function GET(req: NextRequest, { params }: { params: { username: st
       name: true,
       bio: true,
       avatar: true,
+      instagram: true,
+      youtube: true,
+      tiktok: true,
+      twitter: true,
       _count: {
         select: { builds: true, followers: true, following: true }
       },

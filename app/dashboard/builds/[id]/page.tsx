@@ -73,6 +73,8 @@ export default function BuildDetailPage() {
   const [savingMod, setSavingMod] = useState(false)
   const [brandSuggestions, setBrandSuggestions] = useState<string[]>([])
   const brandDatalistId = 'brand-suggestions'
+  const [linkPreview, setLinkPreview] = useState<{ image: string | null; title: string | null } | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [settingCover, setSettingCover] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -110,6 +112,7 @@ export default function BuildDetailPage() {
     if (res.ok) {
       setModForm(emptyMod)
       setShowModForm(false)
+      setLinkPreview(null)
       fetchBuild()
     }
     setSavingMod(false)
@@ -405,6 +408,7 @@ export default function BuildDetailPage() {
                       val = 'https://' + val
                     }
                     setModForm({ ...modForm, vendorUrl: val })
+                    if (!val) setLinkPreview(null)
                   }}
                   onBlur={e => {
                     let val = e.target.value.trim()
@@ -412,10 +416,32 @@ export default function BuildDetailPage() {
                       val = 'https://' + val
                       setModForm({ ...modForm, vendorUrl: val })
                     }
+                    if (val && val.startsWith('http')) {
+                      setPreviewLoading(true)
+                      fetch(`/api/link-preview?url=${encodeURIComponent(val)}`)
+                        .then(r => r.json())
+                        .then(data => { setLinkPreview(data); setPreviewLoading(false) })
+                        .catch(() => setPreviewLoading(false))
+                    }
                   }}
                   className={inputClass}
                   placeholder="amazon.com/dp/..."
                 />
+                {previewLoading && <p className="text-xs text-gray-500 mt-1">Fetching preview...</p>}
+                {linkPreview?.image && (
+                  <div className="flex items-center gap-2 mt-2 p-2 bg-gray-800 rounded-lg">
+                    <img src={linkPreview.image} alt="" className="w-12 h-12 object-cover rounded" />
+                    {linkPreview.title && modForm.name === '' && (
+                      <button
+                        type="button"
+                        onClick={() => setModForm(f => ({ ...f, name: linkPreview.title || f.name }))}
+                        className="text-xs text-blue-400 hover:text-blue-300 text-left"
+                      >
+                        Use: &quot;{linkPreview.title?.slice(0, 50)}&quot;
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1.5">Install Date</label>

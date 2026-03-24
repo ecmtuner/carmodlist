@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 
 export default function SettingsPage() {
   const { data: session, update } = useSession()
-  const [form, setForm] = useState({ name: '', username: '', bio: '', avatar: '' })
+  const [form, setForm] = useState({ name: '', username: '', bio: '', avatar: '', instagram: '', youtube: '', tiktok: '', twitter: '' })
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -20,6 +20,10 @@ export default function SettingsPage() {
         username: user.username || '',
         bio: user.bio || '',
         avatar: user.image || '',
+        instagram: user.instagram || '',
+        youtube: user.youtube || '',
+        tiktok: user.tiktok || '',
+        twitter: user.twitter || '',
       })
     }
   }, [session])
@@ -114,6 +118,80 @@ export default function SettingsPage() {
               rows={3}
               placeholder="Tell the community about yourself..."
             />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Social Links</label>
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <span className="text-lg w-7 text-center">📸</span>
+                <input
+                  type="text"
+                  value={form.instagram}
+                  onChange={e => setForm({ ...form, instagram: e.target.value })}
+                  onBlur={e => {
+                    let val = e.target.value.trim()
+                    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                      val = 'https://' + val
+                      setForm(f => ({ ...f, instagram: val }))
+                    }
+                  }}
+                  className={inputClass}
+                  placeholder="Instagram (@username or URL)"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg w-7 text-center">▶️</span>
+                <input
+                  type="text"
+                  value={form.youtube}
+                  onChange={e => setForm({ ...form, youtube: e.target.value })}
+                  onBlur={e => {
+                    let val = e.target.value.trim()
+                    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                      val = 'https://' + val
+                      setForm(f => ({ ...f, youtube: val }))
+                    }
+                  }}
+                  className={inputClass}
+                  placeholder="YouTube (channel URL)"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg w-7 text-center">🎵</span>
+                <input
+                  type="text"
+                  value={form.tiktok}
+                  onChange={e => setForm({ ...form, tiktok: e.target.value })}
+                  onBlur={e => {
+                    let val = e.target.value.trim()
+                    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                      val = 'https://' + val
+                      setForm(f => ({ ...f, tiktok: val }))
+                    }
+                  }}
+                  className={inputClass}
+                  placeholder="TikTok (@username or URL)"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg w-7 text-center">🐦</span>
+                <input
+                  type="text"
+                  value={form.twitter}
+                  onChange={e => setForm({ ...form, twitter: e.target.value })}
+                  onBlur={e => {
+                    let val = e.target.value.trim()
+                    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                      val = 'https://' + val
+                      setForm(f => ({ ...f, twitter: val }))
+                    }
+                  }}
+                  className={inputClass}
+                  placeholder="Twitter/X (@username or URL)"
+                />
+              </div>
+            </div>
           </div>
 
           <div>
