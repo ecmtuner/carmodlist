@@ -9,7 +9,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   const build = await prisma.build.findFirst({
     where: { id: params.id, userId: (session.user as any).id },
-    include: { mods: { orderBy: { category: 'asc' } }, _count: { select: { likes: true } } }
+    include: {
+      mods: { orderBy: { category: 'asc' } },
+      photos: { orderBy: { order: 'asc' } },
+      _count: { select: { likes: true } }
+    }
   })
 
   if (!build) return NextResponse.json({ error: 'Not found' }, { status: 404 })

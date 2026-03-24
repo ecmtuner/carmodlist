@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
@@ -21,6 +21,13 @@ interface Mod {
   tunerUrl?: string
 }
 
+interface BuildPhoto {
+  id: string
+  url: string
+  publicId: string
+  order: number
+}
+
 interface Build {
   id: string
   title: string
@@ -37,7 +44,9 @@ interface Build {
   totalCost: number
   isPublic: boolean
   slug: string
+  coverImage?: string
   mods: Mod[]
+  photos: BuildPhoto[]
   _count: { likes: number }
 }
 
@@ -62,6 +71,9 @@ export default function BuildDetailPage() {
   const [showModForm, setShowModForm] = useState(false)
   const [modForm, setModForm] = useState(emptyMod)
   const [savingMod, setSavingMod] = useState(false)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [settingCover, setSettingCover] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const fetchBuild = () => {
     fetch(`/api/builds/${id}`)
@@ -111,6 +123,58 @@ export default function BuildDetailPage() {
     if (!confirm('Delete this entire build? This cannot be undone.')) return
     await fetch(`/api/builds/${id}`, { method: 'DELETE' })
     router.push('/dashboard')
+  }
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if ((build?.photos.length ?? 0) >= 10) {
+      alert('Maximum 10 photos per build')
+      return
+    }
+
+    setUploadingPhoto(true)
+    const form = new FormData()
+    form.append('file', file)
+
+    try {
+      const res = await fetch(`/api/builds/${id}/photos`, {
+        method: 'POST',
+        body: form,
+      })
+      if (res.ok) {
+        fetchBuild()
+      } else {
+        const err = await res.json()
+        alert(err.error || 'Upload failed')
+      }
+    } catch {
+      alert('Upload failed')
+    } finally {
+      setUploadingPhoto(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleDeletePhoto = async (photoId: string) => {
+    if (!confirm('Delete this photo?')) return
+    const res = await fetch(`/api/builds/${id}/photos?photoId=${photoId}`, { method: 'DELETE' })
+    if (res.ok) fetchBuild()
+  }
+
+  const handleSetCover = async (photoUrl: string) => {
+    setSettingCover(photoUrl)
+    const res = await fetch(`/api/builds/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...build,
+        coverImage: photoUrl,
+      })
+    })
+    if (res.ok) fetchBuild()
+    setSettingCover(null)
   }
 
   const inputClass = "w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 text-sm"
@@ -167,6 +231,83 @@ export default function BuildDetailPage() {
               <div className="text-xs text-gray-500 mt-1">HP Gain</div>
             </div>
           </>
+        )}
+      </div>
+
+      {/* Photos Section */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">Photos</h2>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-500">{build.photos.length}/10</span>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingPhoto || build.photos.length >= 10}
+              className="bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors"
+            >
+              {uploadingPhoto ? 'Uploading...' : '+ Add Photo'}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoUpload}
+            />
+          </div>
+        </div>
+
+        {build.photos.length === 0 ? (
+          <div className="text-center py-10 text-gray-500">
+            <div className="text-4xl mb-2">📸</div>
+            <p className="text-sm">No photos yet. Add up to 10 photos of your build.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {build.photos
+              .sort((a, b) => a.order - b.order)
+              .map((photo, index) => (
+                <div key={photo.id} className="relative group aspect-square rounded-xl overflow-hidden bg-gray-800">
+                  <img
+                    src={photo.url}
+                    alt={`Build photo ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Cover badge */}
+                  {build.coverImage === photo.url && (
+                    <div className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-lg font-medium">
+                      Cover
+                    </div>
+                  )}
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-2">
+                    {build.coverImage !== photo.url && (
+                      <button
+                        onClick={() => handleSetCover(photo.url)}
+                        disabled={settingCover === photo.url}
+                        className="bg-white text-black text-xs px-3 py-1.5 rounded-lg font-medium w-full text-center hover:bg-gray-200 transition-colors"
+                      >
+                        {settingCover === photo.url ? 'Setting...' : 'Set as Cover'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDeletePhoto(photo.id)}
+                      className="bg-red-600 hover:bg-red-500 text-white text-xs px-3 py-1.5 rounded-lg font-medium w-full text-center transition-colors"
+                    >
+                      Delete ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            {uploadingPhoto && (
+              <div className="aspect-square rounded-xl bg-gray-800 flex items-center justify-center border-2 border-dashed border-gray-600">
+                <div className="text-gray-400 text-sm text-center">
+                  <div className="animate-spin text-2xl mb-1">⏳</div>
+                  Uploading...
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -239,11 +380,24 @@ export default function BuildDetailPage() {
               <div>
                 <label className="block text-xs text-gray-400 mb-1.5">Vendor URL</label>
                 <input
-                  type="url"
+                  type="text"
                   value={modForm.vendorUrl}
-                  onChange={e => setModForm({ ...modForm, vendorUrl: e.target.value })}
+                  onChange={e => {
+                    let val = e.target.value
+                    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                      val = 'https://' + val
+                    }
+                    setModForm({ ...modForm, vendorUrl: val })
+                  }}
+                  onBlur={e => {
+                    let val = e.target.value.trim()
+                    if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                      val = 'https://' + val
+                      setModForm({ ...modForm, vendorUrl: val })
+                    }
+                  }}
                   className={inputClass}
-                  placeholder="https://..."
+                  placeholder="amazon.com/dp/..."
                 />
               </div>
               <div>
@@ -272,11 +426,24 @@ export default function BuildDetailPage() {
                 <div>
                   <label className="block text-xs text-gray-400 mb-1.5">Tuner URL</label>
                   <input
-                    type="url"
+                    type="text"
                     value={modForm.tunerUrl}
-                    onChange={e => setModForm({ ...modForm, tunerUrl: e.target.value })}
+                    onChange={e => {
+                      let val = e.target.value
+                      if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                        val = 'https://' + val
+                      }
+                      setModForm({ ...modForm, tunerUrl: val })
+                    }}
+                    onBlur={e => {
+                      let val = e.target.value.trim()
+                      if (val && !val.startsWith('http://') && !val.startsWith('https://')) {
+                        val = 'https://' + val
+                        setModForm({ ...modForm, tunerUrl: val })
+                      }
+                    }}
                     className={inputClass}
-                    placeholder="https://ecmtuner.com"
+                    placeholder="ecmtuner.com"
                   />
                 </div>
               </div>

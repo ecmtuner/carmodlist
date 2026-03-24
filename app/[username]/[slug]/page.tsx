@@ -19,6 +19,13 @@ interface Mod {
   tunerUrl?: string
 }
 
+interface BuildPhoto {
+  id: string
+  url: string
+  publicId: string
+  order: number
+}
+
 interface Build {
   id: string
   title: string
@@ -34,11 +41,167 @@ interface Build {
   description?: string
   totalCost: number
   slug: string
+  coverImage?: string
   mods: Mod[]
+  photos: BuildPhoto[]
   user: { username: string; name?: string; avatar?: string }
   _count: { likes: number }
 }
 
+interface Comment {
+  id: string
+  text: string
+  createdAt: string
+  user: { name?: string; username: string; avatar?: string }
+}
+
+// ---- Helper: time ago ----
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 30) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString()
+}
+
+// ---- CommentsSection (client component) ----
+function CommentsSection({ buildId, currentUserId }: { buildId: string; currentUserId?: string }) {
+  const { data: session } = useSession()
+  const [comments, setComments] = useState<Comment[]>([])
+  const [text, setText] = useState('')
+  const [posting, setPosting] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  const fetchComments = () => {
+    fetch(`/api/builds/${buildId}/comments`)
+      .then(r => r.json())
+      .then(data => {
+        setComments(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }
+
+  useEffect(() => {
+    fetchComments()
+  }, [buildId])
+
+  const handlePost = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!text.trim()) return
+    setPosting(true)
+    const res = await fetch(`/api/builds/${buildId}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    })
+    if (res.ok) {
+      setText('')
+      fetchComments()
+    }
+    setPosting(false)
+  }
+
+  const handleDelete = async (commentId: string) => {
+    if (!confirm('Delete this comment?')) return
+    const res = await fetch(`/api/builds/${buildId}/comments?commentId=${commentId}`, { method: 'DELETE' })
+    if (res.ok) fetchComments()
+  }
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mt-8">
+      <h2 className="font-bold text-lg mb-6">Comments</h2>
+
+      {/* Post form */}
+      {session?.user ? (
+        <form onSubmit={handlePost} className="flex gap-3 mb-6">
+          <input
+            type="text"
+            value={text}
+            onChange={e => setText(e.target.value)}
+            maxLength={500}
+            placeholder="Add a comment..."
+            className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-red-600 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={posting || !text.trim()}
+            className="bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-sm font-medium transition-colors"
+          >
+            {posting ? '...' : 'Post'}
+          </button>
+        </form>
+      ) : (
+        <div className="mb-6 text-center py-4 bg-gray-800/50 rounded-xl">
+          <Link href="/login" className="text-red-400 hover:text-red-300 text-sm">
+            Sign in to comment →
+          </Link>
+        </div>
+      )}
+
+      {/* Comments list */}
+      {loading ? (
+        <div className="text-gray-500 text-sm text-center py-4">Loading comments...</div>
+      ) : comments.length === 0 ? (
+        <div className="text-gray-500 text-sm text-center py-8">
+          <div className="text-2xl mb-2">💬</div>
+          Be the first to comment
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {comments.map(comment => (
+            <div key={comment.id} className="flex gap-3">
+              {/* Avatar */}
+              <div className="flex-shrink-0">
+                {comment.user.avatar ? (
+                  <img
+                    src={comment.user.avatar}
+                    alt=""
+                    className="w-9 h-9 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-red-600 flex items-center justify-center text-white text-sm font-bold">
+                    {comment.user.username[0].toUpperCase()}
+                  </div>
+                )}
+              </div>
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <Link
+                    href={`/${comment.user.username}`}
+                    className="font-semibold text-sm hover:text-red-400 transition-colors"
+                  >
+                    @{comment.user.username}
+                  </Link>
+                  <span className="text-xs text-gray-500">{timeAgo(comment.createdAt)}</span>
+                </div>
+                <p className="text-sm text-gray-300 mt-0.5 break-words">{comment.text}</p>
+              </div>
+              {/* Delete own comment */}
+              {currentUserId && (session?.user as any)?.id === currentUserId && 
+               (session?.user as any)?.username === comment.user.username && (
+                <button
+                  onClick={() => handleDelete(comment.id)}
+                  className="text-gray-600 hover:text-red-400 text-xs transition-colors flex-shrink-0 self-start mt-1"
+                  title="Delete comment"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---- Main page ----
 export default function PublicBuildPage() {
   const { username, slug } = useParams() as { username: string; slug: string }
   const { data: session } = useSession()
@@ -48,6 +211,7 @@ export default function PublicBuildPage() {
   const [likeCount, setLikeCount] = useState(0)
   const [following, setFollowing] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [activePhoto, setActivePhoto] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/public/${username}/${slug}`)
@@ -56,6 +220,12 @@ export default function PublicBuildPage() {
         if (data.id) {
           setBuild(data)
           setLikeCount(data._count.likes)
+          // Set initial active photo
+          if (data.coverImage) {
+            setActivePhoto(data.coverImage)
+          } else if (data.photos?.length > 0) {
+            setActivePhoto(data.photos[0].url)
+          }
         }
         setLoading(false)
       })
@@ -110,6 +280,8 @@ export default function PublicBuildPage() {
       </div>
     )
   }
+
+  const hasPhotos = build.photos && build.photos.length > 0
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -229,6 +401,50 @@ export default function PublicBuildPage() {
           )}
         </div>
 
+        {/* Photo Gallery */}
+        {hasPhotos ? (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
+            <h2 className="font-bold text-lg mb-4">Photos</h2>
+            {/* Hero image */}
+            <div className="rounded-2xl overflow-hidden mb-3 aspect-video bg-gray-800">
+              <img
+                src={activePhoto || build.photos[0].url}
+                alt={build.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Thumbnail strip */}
+            {build.photos.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {build.photos.map((photo) => (
+                  <button
+                    key={photo.id}
+                    onClick={() => setActivePhoto(photo.url)}
+                    className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors ${
+                      activePhoto === photo.url
+                        ? 'border-red-500'
+                        : 'border-transparent hover:border-gray-600'
+                    }`}
+                  >
+                    <img
+                      src={photo.url}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8 flex items-center justify-center py-16">
+            <div className="text-center text-gray-600">
+              <div className="text-5xl mb-2">🚗</div>
+              <div className="text-sm">No photos yet</div>
+            </div>
+          </div>
+        )}
+
         {/* Total Cost */}
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8 flex items-center justify-between">
           <div>
@@ -322,6 +538,12 @@ export default function PublicBuildPage() {
             View Profile →
           </Link>
         </div>
+
+        {/* Comments Section */}
+        <CommentsSection
+          buildId={build.id}
+          currentUserId={(session?.user as any)?.id}
+        />
       </div>
 
       {/* Footer */}

@@ -12,6 +12,7 @@ export async function GET(
     where: { slug: params.slug, userId: user.id, isPublic: true },
     include: {
       mods: { orderBy: { category: 'asc' } },
+      photos: { orderBy: { order: 'asc' } },
       user: { select: { username: true, name: true, avatar: true } },
       _count: { select: { likes: true } }
     }

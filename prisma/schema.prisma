@@ -23,6 +23,7 @@ model User {
   likes     Like[]
   following Follow[] @relation("follower")
   followers Follow[] @relation("following")
+  comments  Comment[]
 }
 
 model Build {
@@ -47,8 +48,10 @@ model Build {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  mods  Mod[]
-  likes Like[]
+  mods     Mod[]
+  likes    Like[]
+  photos   BuildPhoto[]
+  comments Comment[]
 }
 
 model Mod {
@@ -86,4 +89,24 @@ model Follow {
   following   User   @relation("following", fields: [followingId], references: [id])
 
   @@unique([followerId, followingId])
+}
+
+model BuildPhoto {
+  id        String   @id @default(cuid())
+  buildId   String
+  build     Build    @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  buildId   String
+  build     Build    @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  text      String
+  createdAt DateTime @default(now())
 }
