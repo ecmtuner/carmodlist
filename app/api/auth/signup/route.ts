@@ -16,7 +16,13 @@ export async function POST(req: NextRequest) {
     }
 
     const hashed = await bcrypt.hash(password, 12)
-    const username = email.split('@')[0].replace(/[^a-z0-9]/gi, '').toLowerCase() + Math.floor(Math.random() * 999)
+    // Use provided username or generate a clean one from name/email
+    let baseUsername = (name || email.split('@')[0])
+      .replace(/[^a-z0-9]/gi, '')
+      .toLowerCase()
+      .slice(0, 15)
+    if (!baseUsername) baseUsername = 'user'
+    const username = baseUsername + Math.floor(Math.random() * 999)
 
     const user = await prisma.user.create({
       data: { email, password: hashed, name, username }
