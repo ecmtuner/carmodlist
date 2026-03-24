@@ -71,6 +71,7 @@ export default function BuildDetailPage() {
   const [showModForm, setShowModForm] = useState(false)
   const [modForm, setModForm] = useState(emptyMod)
   const [savingMod, setSavingMod] = useState(false)
+  const [editingModId, setEditingModId] = useState<string | null>(null)
   const [brandSuggestions, setBrandSuggestions] = useState<string[]>([])
   const brandDatalistId = 'brand-suggestions'
   const [linkPreview, setLinkPreview] = useState<{ image: string | null; title: string | null } | null>(null)
@@ -103,19 +104,54 @@ export default function BuildDetailPage() {
     e.preventDefault()
     setSavingMod(true)
 
-    const res = await fetch(`/api/builds/${id}/mods`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(modForm)
-    })
-
-    if (res.ok) {
-      setModForm(emptyMod)
-      setShowModForm(false)
-      setLinkPreview(null)
-      fetchBuild()
+    if (editingModId) {
+      // Edit existing mod
+      const res = await fetch(`/api/mods/${editingModId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(modForm)
+      })
+      if (res.ok) {
+        setModForm(emptyMod)
+        setShowModForm(false)
+        setEditingModId(null)
+        setLinkPreview(null)
+        fetchBuild()
+      }
+    } else {
+      // Add new mod
+      const res = await fetch(`/api/builds/${id}/mods`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(modForm)
+      })
+      if (res.ok) {
+        setModForm(emptyMod)
+        setShowModForm(false)
+        setLinkPreview(null)
+        fetchBuild()
+      }
     }
     setSavingMod(false)
+  }
+
+  const handleEditMod = (mod: Mod) => {
+    setModForm({
+      category: mod.category,
+      name: mod.name,
+      brand: mod.brand || '',
+      price: mod.price?.toString() || '',
+      vendorUrl: mod.vendorUrl || '',
+      installDate: mod.installDate || '',
+      notes: mod.notes || '',
+      isTune: mod.isTune,
+      tunerName: mod.tunerName || '',
+      tunerUrl: mod.tunerUrl || '',
+    })
+    setEditingModId(mod.id)
+    setShowModForm(true)
+    setLinkPreview(null)
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
   }
 
   const handleDeleteMod = async (modId: string) => {
@@ -331,7 +367,7 @@ export default function BuildDetailPage() {
         {/* Add Mod Form */}
         {showModForm && (
           <form onSubmit={handleAddMod} className="bg-gray-800 rounded-2xl p-6 mb-6 space-y-4">
-            <h3 className="font-bold mb-2">New Mod</h3>
+            <h3 className="font-bold mb-2">{editingModId ? 'Edit Mod' : 'New Mod'}</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs text-gray-400 mb-1.5">Category *</label>
@@ -513,7 +549,7 @@ export default function BuildDetailPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setShowModForm(false)}
+                onClick={() => { setShowModForm(false); setEditingModId(null); setModForm(emptyMod); setLinkPreview(null) }}
                 className="border border-gray-700 text-gray-400 px-6 py-2.5 rounded-xl text-sm transition-colors"
               >
                 Cancel
@@ -555,8 +591,16 @@ export default function BuildDetailPage() {
                         </a>
                       )}
                       <button
+                        onClick={() => handleEditMod(mod)}
+                        className="text-gray-600 hover:text-blue-400 text-xs transition-colors"
+                        title="Edit mod"
+                      >
+                        ✏️
+                      </button>
+                      <button
                         onClick={() => handleDeleteMod(mod.id)}
                         className="text-gray-600 hover:text-red-400 text-xs transition-colors"
+                        title="Delete mod"
                       >
                         ✕
                       </button>
