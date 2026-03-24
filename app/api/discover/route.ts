@@ -12,20 +12,24 @@ export async function GET(req: NextRequest) {
   let orderBy: any = { createdAt: 'desc' }
   if (sort === 'expensive') orderBy = { totalCost: 'desc' }
 
-  const builds = await prisma.build.findMany({
-    where,
-    include: {
-      user: { select: { username: true, name: true, avatar: true } },
-      _count: { select: { likes: true, mods: true } }
-    },
-    orderBy,
-    take: 50,
-  })
+  try {
+    const builds = await prisma.build.findMany({
+      where,
+      include: {
+        user: { select: { username: true, name: true, avatar: true } },
+        _count: { select: { likes: true, mods: true } }
+      },
+      orderBy,
+      take: 50,
+    })
 
-  // Sort by likes client-side if needed
-  if (sort === 'liked') {
-    builds.sort((a, b) => b._count.likes - a._count.likes)
+    if (sort === 'liked') {
+      builds.sort((a, b) => b._count.likes - a._count.likes)
+    }
+
+    return NextResponse.json(builds)
+  } catch (err: any) {
+    console.error('Discover error:', err.message)
+    return NextResponse.json({ error: err.message }, { status: 500 })
   }
-
-  return NextResponse.json(builds)
 }
