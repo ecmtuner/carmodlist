@@ -43,13 +43,18 @@ export const authOptions: NextAuthOptions = {
       }
       return true
     },
-    async jwt({ token, user }) {
-      if (user) token.id = (user as any).id
-      if (!token.id && token.email) {
+    async jwt({ token, user, trigger }) {
+      if (user) {
+        token.id = (user as any).id
+        token.username = (user as any).username
+      }
+      // Always refresh from DB so username changes take effect immediately
+      if (token.email) {
         const dbUser = await prisma.user.findUnique({ where: { email: token.email } })
         if (dbUser) {
           token.id = dbUser.id
           token.username = dbUser.username
+          token.name = dbUser.name
         }
       }
       return token
@@ -58,6 +63,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id
         ;(session.user as any).username = token.username
+        session.user.name = token.name as string
       }
       return session
     }

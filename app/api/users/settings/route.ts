@@ -9,19 +9,25 @@ export async function PUT(req: NextRequest) {
 
   const { name, username, bio, avatar } = await req.json()
   const userId = (session.user as any).id
+  if (!userId) return NextResponse.json({ error: 'Session missing user ID — please log out and back in' }, { status: 401 })
 
   // Check username uniqueness
   if (username) {
+    const clean = username.replace(/[^a-z0-9_]/gi, '').toLowerCase()
+    if (clean !== username) return NextResponse.json({ error: 'Username can only contain letters, numbers, underscores' }, { status: 400 })
     const existing = await prisma.user.findFirst({
-      where: { username, NOT: { id: userId } }
+      where: { username: clean, NOT: { id: userId } }
     })
     if (existing) return NextResponse.json({ error: 'Username already taken' }, { status: 400 })
   }
 
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data: { name, username, bio, avatar }
-  })
-
-  return NextResponse.json(user)
+  try {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: { name, username, bio, avatar }
+    })
+    return NextResponse.json(user)
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 })
+  }
 }
