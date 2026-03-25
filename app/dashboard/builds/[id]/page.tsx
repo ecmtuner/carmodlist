@@ -50,6 +50,9 @@ interface Build {
   run0100?: number
   runQuarter?: number
   runTrap?: number
+  run60130?: number
+  run100150?: number
+  run150200?: number
   mods: Mod[]
   photos: BuildPhoto[]
   _count: { likes: number }
@@ -635,11 +638,14 @@ export default function BuildDetailPage() {
         <h2 className="font-bold mb-1">Performance Times <span className="text-gray-500 text-sm font-normal">(optional — enter your best Dragy runs)</span></h2>
         <p className="text-xs text-gray-600 mb-4">Shows on your public build page as a performance card</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
+          {([
             { label: '0–60 mph', key: 'run060', unit: 's', placeholder: '3.2' },
             { label: '0–100 mph', key: 'run0100', unit: 's', placeholder: '6.8' },
             { label: '¼ Mile', key: 'runQuarter', unit: 's', placeholder: '11.4' },
             { label: 'Trap Speed', key: 'runTrap', unit: 'mph', placeholder: '124' },
+            { label: '60–130 mph', key: 'run60130', unit: 's', placeholder: '8.1' },
+            { label: '100–150 mph', key: 'run100150', unit: 's', placeholder: '7.4' },
+            { label: '150–200 mph', key: 'run150200', unit: 's', placeholder: '12.0' },
           ].map(({ label, key, unit, placeholder }) => (
             <div key={key}>
               <label className="block text-xs text-gray-400 mb-1.5">{label} <span className="text-gray-600">({unit})</span></label>

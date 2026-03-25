@@ -52,6 +52,9 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       ...(data.run0100 !== undefined ? { run0100: data.run0100 } : {}),
       ...(data.runQuarter !== undefined ? { runQuarter: data.runQuarter } : {}),
       ...(data.runTrap !== undefined ? { runTrap: data.runTrap } : {}),
+      ...(data.run60130 !== undefined ? { run60130: data.run60130 } : {}),
+      ...(data.run100150 !== undefined ? { run100150: data.run100150 } : {}),
+      ...(data.run150200 !== undefined ? { run150200: data.run150200 } : {}),
     }
   })
 

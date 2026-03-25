@@ -47,6 +47,9 @@ interface Build {
   run0100?: number
   runQuarter?: number
   runTrap?: number
+  run60130?: number
+  run100150?: number
+  run150200?: number
   mods: Mod[]
   photos: BuildPhoto[]
   user: { username: string; name?: string; avatar?: string }
@@ -406,7 +409,7 @@ export default function PublicBuildPage() {
         </div>
 
         {/* Performance Times */}
-        {(build.run060 || build.run0100 || build.runQuarter || build.runTrap) && (
+        {(build.run060 || build.run0100 || build.runQuarter || build.runTrap || build.run60130 || build.run100150 || build.run150200) && (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
             <h2 className="font-bold text-lg mb-4">⚡ Performance Times</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -432,6 +435,24 @@ export default function PublicBuildPage() {
                 <div className="bg-gray-800 rounded-xl p-4 text-center">
                   <div className="text-2xl font-black text-yellow-400">{build.runTrap} mph</div>
                   <div className="text-xs text-gray-500 mt-1">Trap Speed</div>
+                </div>
+              )}
+              {build.run60130 && (
+                <div className="bg-gray-800 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-black text-red-400">{build.run60130}s</div>
+                  <div className="text-xs text-gray-500 mt-1">60–130 mph</div>
+                </div>
+              )}
+              {build.run100150 && (
+                <div className="bg-gray-800 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-black text-red-400">{build.run100150}s</div>
+                  <div className="text-xs text-gray-500 mt-1">100–150 mph</div>
+                </div>
+              )}
+              {build.run150200 && (
+                <div className="bg-gray-800 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-black text-red-400">{build.run150200}s</div>
+                  <div className="text-xs text-gray-500 mt-1">150–200 mph</div>
                 </div>
               )}
             </div>

@@ -100,6 +100,9 @@ export async function GET() {
       ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "run0100" FLOAT;
       ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "runQuarter" FLOAT;
       ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "runTrap" FLOAT;
+      ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "run60130" FLOAT;
+      ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "run100150" FLOAT;
+      ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "run150200" FLOAT;
     `)
     await client.end()
     return NextResponse.json({ ok: true, message: 'Tables created successfully' })

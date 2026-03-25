@@ -52,6 +52,9 @@ model Build {
   run0100     Float?
   runQuarter  Float?
   runTrap     Float?
+  run60130    Float?
+  run100150   Float?
+  run150200   Float?
   isPublic    Boolean  @default(true)
   totalCost   Float    @default(0)
   createdAt   DateTime @default(now())
