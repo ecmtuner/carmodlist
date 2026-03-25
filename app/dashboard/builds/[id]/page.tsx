@@ -638,7 +638,7 @@ export default function BuildDetailPage() {
         <h2 className="font-bold mb-1">Performance Times <span className="text-gray-500 text-sm font-normal">(optional — enter your best Dragy runs)</span></h2>
         <p className="text-xs text-gray-600 mb-4">Shows on your public build page as a performance card</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {([
+          {[
             { label: '0–60 mph', key: 'run060', unit: 's', placeholder: '3.2' },
             { label: '0–100 mph', key: 'run0100', unit: 's', placeholder: '6.8' },
             { label: '¼ Mile', key: 'runQuarter', unit: 's', placeholder: '11.4' },
