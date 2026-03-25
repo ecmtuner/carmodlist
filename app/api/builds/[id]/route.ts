@@ -48,6 +48,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
       isPublic: data.isPublic,
       ...(data.coverImage !== undefined ? { coverImage: data.coverImage } : {}),
       ...(data.youtubeUrl !== undefined ? { youtubeUrl: data.youtubeUrl || null } : {}),
+      ...(data.run060 !== undefined ? { run060: data.run060 } : {}),
+      ...(data.run0100 !== undefined ? { run0100: data.run0100 } : {}),
+      ...(data.runQuarter !== undefined ? { runQuarter: data.runQuarter } : {}),
+      ...(data.runTrap !== undefined ? { runTrap: data.runTrap } : {}),
     }
   })
 

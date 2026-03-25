@@ -104,6 +104,14 @@ async function migrate() {
     ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "youtubeUrl" TEXT;
   `);
 
+  // Add performance run fields
+  await client.query(`
+    ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "run060" FLOAT;
+    ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "run0100" FLOAT;
+    ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "runQuarter" FLOAT;
+    ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "runTrap" FLOAT;
+  `);
+
   console.log('✅ Migration complete');
   await client.end();
 }

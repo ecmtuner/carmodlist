@@ -43,6 +43,10 @@ interface Build {
   slug: string
   coverImage?: string
   youtubeUrl?: string
+  run060?: number
+  run0100?: number
+  runQuarter?: number
+  runTrap?: number
   mods: Mod[]
   photos: BuildPhoto[]
   user: { username: string; name?: string; avatar?: string }
@@ -400,6 +404,39 @@ export default function PublicBuildPage() {
             </div>
           )}
         </div>
+
+        {/* Performance Times */}
+        {(build.run060 || build.run0100 || build.runQuarter || build.runTrap) && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
+            <h2 className="font-bold text-lg mb-4">⚡ Performance Times</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {build.run060 && (
+                <div className="bg-gray-800 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-black text-red-400">{build.run060}s</div>
+                  <div className="text-xs text-gray-500 mt-1">0–60 mph</div>
+                </div>
+              )}
+              {build.run0100 && (
+                <div className="bg-gray-800 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-black text-red-400">{build.run0100}s</div>
+                  <div className="text-xs text-gray-500 mt-1">0–100 mph</div>
+                </div>
+              )}
+              {build.runQuarter && (
+                <div className="bg-gray-800 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-black text-red-400">{build.runQuarter}s</div>
+                  <div className="text-xs text-gray-500 mt-1">¼ Mile</div>
+                </div>
+              )}
+              {build.runTrap && (
+                <div className="bg-gray-800 rounded-xl p-4 text-center">
+                  <div className="text-2xl font-black text-yellow-400">{build.runTrap} mph</div>
+                  <div className="text-xs text-gray-500 mt-1">Trap Speed</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Photo Gallery */}
         {hasPhotos ? (
