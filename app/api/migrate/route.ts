@@ -90,6 +90,10 @@ export async function GET() {
       ALTER TABLE "User" ADD COLUMN IF NOT EXISTS tiktok TEXT;
       ALTER TABLE "User" ADD COLUMN IF NOT EXISTS twitter TEXT;
     `)
+    // Add youtubeUrl to Build
+    await client.query(`
+      ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "youtubeUrl" TEXT;
+    `)
     await client.end()
     return NextResponse.json({ ok: true, message: 'Tables created successfully' })
   } catch (err: any) {
