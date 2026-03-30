@@ -104,6 +104,19 @@ export async function GET() {
       ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "run100150" FLOAT;
       ALTER TABLE "Build" ADD COLUMN IF NOT EXISTS "run150200" FLOAT;
     `)
+    // Add Message table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS "Message" (
+        id TEXT PRIMARY KEY,
+        "senderId" TEXT NOT NULL REFERENCES "User"(id),
+        "receiverId" TEXT NOT NULL REFERENCES "User"(id),
+        text TEXT NOT NULL,
+        read BOOLEAN NOT NULL DEFAULT FALSE,
+        "createdAt" TIMESTAMP NOT NULL DEFAULT NOW()
+      );
+      CREATE INDEX IF NOT EXISTS "Message_receiverId_idx" ON "Message"("receiverId");
+      CREATE INDEX IF NOT EXISTS "Message_senderId_idx" ON "Message"("senderId");
+    `)
     await client.end()
     return NextResponse.json({ ok: true, message: 'Tables created successfully' })
   } catch (err: any) {

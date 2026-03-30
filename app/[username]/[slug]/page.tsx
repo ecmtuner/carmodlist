@@ -28,6 +28,7 @@ interface BuildPhoto {
 
 interface Build {
   id: string
+  userId: string
   title: string
   year: number
   make: string
@@ -219,6 +220,7 @@ export default function PublicBuildPage() {
   const [following, setFollowing] = useState(false)
   const [copied, setCopied] = useState(false)
   const [activePhoto, setActivePhoto] = useState<string | null>(null)
+  const [buildOwnerId, setBuildOwnerId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/public/${username}/${slug}`)
@@ -227,6 +229,7 @@ export default function PublicBuildPage() {
         if (data.id) {
           setBuild(data)
           setLikeCount(data._count.likes)
+          setBuildOwnerId(data.userId || null)
           // Set initial active photo
           if (data.coverImage) {
             setActivePhoto(data.coverImage)
@@ -333,7 +336,7 @@ export default function PublicBuildPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <button
                 onClick={handleFollow}
                 className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-colors border ${
@@ -352,6 +355,14 @@ export default function PublicBuildPage() {
               >
                 {liked ? '❤️' : '🤍'} {likeCount}
               </button>
+              {session?.user && (session.user as any).id !== build.userId && (
+                <Link
+                  href={`/dashboard/messages/${build.userId}`}
+                  className="px-5 py-2.5 rounded-xl text-sm font-medium transition-colors border border-gray-700 hover:border-gray-500 text-gray-300"
+                >
+                  💬 Message
+                </Link>
+              )}
             </div>
           </div>
 

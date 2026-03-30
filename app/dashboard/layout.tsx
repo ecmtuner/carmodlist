@@ -11,6 +11,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
 
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/login')
@@ -18,6 +19,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Close menu on route change
   useEffect(() => { setMenuOpen(false) }, [pathname])
+
+  // Fetch unread message count
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    const fetchUnread = () => {
+      fetch('/api/messages/unread')
+        .then(r => r.json())
+        .then(data => setUnreadCount(data.count || 0))
+        .catch(() => {})
+    }
+    fetchUnread()
+    const interval = setInterval(fetchUnread, 30000)
+    return () => clearInterval(interval)
+  }, [status])
 
   if (status === 'loading') {
     return (
@@ -30,6 +45,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const nav = [
     { href: '/dashboard', label: '🏗️', full: '🏗️ My Builds' },
     { href: '/discover', label: '🔍', full: '🔍 Discover' },
+    { href: '/dashboard/messages', label: '💬', full: '💬 Messages' },
     { href: '/dashboard/settings', label: '⚙️', full: '⚙️ Settings' },
   ]
 
@@ -65,13 +81,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               key={item.href}
               href={item.href}
-              className={`block px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 pathname === item.href
                   ? 'bg-red-600/20 text-red-400'
                   : 'text-gray-400 hover:text-white hover:bg-gray-800'
               }`}
             >
-              {item.full}
+              <span>{item.full}</span>
+              {item.href === '/dashboard/messages' && unreadCount > 0 && (
+                <span className="bg-red-600 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {unreadCount}
+                </span>
+              )}
             </Link>
           ))}
           <div className="pt-3 border-t border-gray-800 mt-2">
@@ -98,13 +119,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                className={`flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                   pathname === item.href
                     ? 'bg-red-600/20 text-red-400'
                     : 'text-gray-400 hover:text-white hover:bg-gray-800'
                 }`}
               >
-                {item.full}
+                <span>{item.full}</span>
+                {item.href === '/dashboard/messages' && unreadCount > 0 && (
+                  <span className="bg-red-600 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {unreadCount}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>
